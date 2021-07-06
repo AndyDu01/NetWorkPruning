@@ -72,7 +72,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = student.optimizer
 n_epochs = 80
 if '-l' in sys.argv:
-    student.load(sourcePath)
+    student.load(sourcePath + "student.dict")
     student_net = student.network
     optimizer = student.optimizer
 for epoch in range(n_epochs):
@@ -97,7 +97,7 @@ for epoch in range(n_epochs):
     train_acc = sum(train_accs) / len(train_accs)
     print(
         f"[ Train | {epoch + 1:03d}/{n_epochs:03d} ] loss = {train_loss:.5f}, acc = {train_acc:.5f}")
-    student.save(sourcePath)
+    student.save(sourcePath + "student.dict")
     # ==============================Validation============================================
     valid_loss = []
     valid_accs = []

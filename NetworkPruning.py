@@ -30,7 +30,7 @@ test_tfm = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-batch_size = 64
+batch_size = 128
 train_set = DatasetFolder(sourcePath + "food-11/training/labeled",
                           loader=lambda x: Image.open(x), extensions="jpg", transform=train_tfm)
 valid_set = DatasetFolder(
@@ -64,7 +64,7 @@ teacher_net.eval()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 student_net = student_net.to(device)
 teacher_net = teacher_net.to(device)
-unlabeled_set = get_pseudo_labels(unlabeled_set, teacher_net)
+unlabeled_set = get_pseudo_labels(unlabeled_set, teacher_net,batch_size= batch_size)
 concat_dataset = ConcatDataset([train_set, unlabeled_set])
 train_loader = DataLoader(
     concat_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, drop_last=True)

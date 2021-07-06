@@ -1,3 +1,4 @@
+from StudentNerwork import Student
 from torchsummary import summary
 import numpy as np
 import torch
@@ -12,6 +13,8 @@ from torch.utils.data import ConcatDataset, DataLoader, Subset
 from torchvision.datasets import DatasetFolder
 from tqdm.auto import tqdm
 from SemiSupervise import get_pseudo_labels
+from StudentNetwork import *
+sourcePath = "/tmp2/b08902011/"
 
 train_tfm = transforms.Compose([
     transforms.Resize((142, 142)),
@@ -28,14 +31,14 @@ test_tfm = transforms.Compose([
 ])
 
 batch_size = 64
-train_set = DatasetFolder("food-11/training/labeled",
+train_set = DatasetFolder(sourcePath + "food-11/training/labeled",
                           loader=lambda x: Image.open(x), extensions="jpg", transform=train_tfm)
 valid_set = DatasetFolder(
     "food-11/validation", loader=lambda x: Image.open(x), extensions="jpg", transform=test_tfm)
-unlabeled_set = DatasetFolder("food-11/training/unlabeled",
+unlabeled_set = DatasetFolder(sourcePath + "food-11/training/unlabeled",
                               loader=lambda x: Image.open(x), extensions="jpg", transform=train_tfm)
 test_set = DatasetFolder(
-    "food-11/testing", loader=lambda x: Image.open(x), extensions="jpg", transform=test_tfm)
+    sourcePath + "food-11/testing", loader=lambda x: Image.open(x), extensions="jpg", transform=test_tfm)
 train_loader = DataLoader(train_set, batch_size=batch_size,
                           shuffle=True, num_workers=2, pin_memory=True)
 valid_loader = DataLoader(valid_set, batch_size=batch_size,
@@ -43,50 +46,20 @@ valid_loader = DataLoader(valid_set, batch_size=batch_size,
 test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
 
-class StudentNet(nn.Module):
-    def __init__(self):
-        super(StudentNet, self).__init__()
-        self.cnn = nn.Sequential(
-            nn.Conv2d(3, 32, 3),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, 3),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0),
 
-            nn.Conv2d(32, 64, 3),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0),
-
-            nn.Conv2d(64, 100, 3),
-            nn.BatchNorm2d(100),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2, 0),
-
-            nn.AdaptiveAvgPool2d((1, 1)),
-        )
-        self.fc = nn.Sequential(
-            nn.Linear(100, 11),
-        )
-
-    def forward(self, x):
-        out = self.cnn(x)
-        out = out.view(out.size()[0], -1)
-        return self.fc(out)
-
-
-student_net = StudentNet()
+student = Student()
+student_net = student.network
 summary(student_net, (3, 128, 128), device="cpu")
 
-def loss_fn_kd(outputs, labels, teacher_outputs, alpha=0.5):
+
+def loss_fn_kd(outputs, labels, teacher_outputs, alpha=0.5, T=2.33):
     hard_loss = F.cross_entropy(outputs, labels) * (1. - alpha)
-    soft_loss = alpha * nn.KLDivLoss()(nn.Softmax(-1)(teacher_outputs),
-                                       nn.Softmax(-1)(outputs))
+    soft_loss = T * T * alpha * nn.KLDivLoss()(nn.Softmax(-1)(teacher_outputs/T),
+                                       nn.Softmax(-1)(outputs/T))
     return hard_loss + soft_loss
 
-teacher_net = torch.load('./teacher_net.ckpt')
+
+teacher_net = torch.load(sourcePath + 'teacher_net.ckpt')
 teacher_net.eval()
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -97,8 +70,7 @@ concat_dataset = ConcatDataset([train_set, unlabeled_set])
 train_loader = DataLoader(
     concat_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, drop_last=True)
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(
-    student_net.parameters(), lr=0.0001, weight_decay=1e-5)
+optimizer = student.optimizer
 n_epochs = 80
 
 for epoch in range(n_epochs):

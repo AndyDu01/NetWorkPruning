@@ -1,4 +1,3 @@
-from StudentNerwork import Student
 from torchsummary import summary
 import numpy as np
 import torch

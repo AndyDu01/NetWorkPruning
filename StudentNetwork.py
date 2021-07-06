@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torch
 
-
 class StudentNet(nn.Module):
     def __init__(self):
         super(StudentNet, self).__init__()

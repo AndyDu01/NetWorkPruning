@@ -10,12 +10,12 @@ import torchvision.models as models
 from PIL import Image
 from torch.utils.data import ConcatDataset, DataLoader, Subset
 from torchvision.datasets import DatasetFolder
-from tqdm.auto import tqdm
+from tqdm import tqdm
 from SemiSupervise import get_pseudo_labels
 from StudentNetwork import *
 import sys
 sourcePath = "/tmp2/b08902011/"
-tqdm.monitor_interval = 0
+
 train_tfm = transforms.Compose([
     transforms.Resize((142, 142)),
     transforms.RandomHorizontalFlip(),

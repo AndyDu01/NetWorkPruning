@@ -14,6 +14,7 @@ from torchvision.datasets import DatasetFolder
 from tqdm.auto import tqdm
 from SemiSupervise import get_pseudo_labels
 from StudentNetwork import *
+import sys
 sourcePath = "/tmp2/b08902011/"
 
 train_tfm = transforms.Compose([
@@ -72,7 +73,10 @@ train_loader = DataLoader(
 criterion = nn.CrossEntropyLoss()
 optimizer = student.optimizer
 n_epochs = 80
-
+if '-l' in sys.argv:
+    student.load(sourcePath)
+    student_net = student.network
+    optimizer = student.optimizer
 for epoch in range(n_epochs):
     student_net.train()
     train_loss = []
@@ -95,7 +99,7 @@ for epoch in range(n_epochs):
     train_acc = sum(train_accs) / len(train_accs)
     print(
         f"[ Train | {epoch + 1:03d}/{n_epochs:03d} ] loss = {train_loss:.5f}, acc = {train_acc:.5f}")
-
+    student.save(sourcePath)
     # ==============================Validation============================================
     valid_loss = []
     valid_accs = []

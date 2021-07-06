@@ -11,6 +11,7 @@ from PIL import Image
 from torch.utils.data import ConcatDataset, DataLoader, Subset
 from torchvision.datasets import DatasetFolder
 from tqdm import tqdm
+tqdm.monitor_interval = 0
 from SemiSupervise import get_pseudo_labels
 from StudentNetwork import *
 import sys
@@ -30,7 +31,7 @@ test_tfm = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-batch_size = 128
+batch_size = 512
 train_set = DatasetFolder(sourcePath + "food-11/training/labeled",
                           loader=lambda x: Image.open(x), extensions="jpg", transform=train_tfm)
 valid_set = DatasetFolder(

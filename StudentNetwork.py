@@ -39,7 +39,7 @@ class StudentNet(nn.Module):
 
 
 class Student():
-    def init(self, network=StudentNet(), optimizer=torch.optim.Adam, optimizerParameter={"lr": 1e-3, "weight_decay": 1e-5}):
+    def __init__(self, network=StudentNet(), optimizer=torch.optim.Adam, optimizerParameter={"lr": 1e-3, "weight_decay": 1e-5}):
         self.network = network
         self.optimizer = optimizer(
             network.parameters(), **optimizerParameter)
@@ -55,7 +55,3 @@ class Student():
         checkpoint = torch.load(PATH)
         self.network.load_state_dict(checkpoint["network"])
         self.optimizer.load_state_dict(checkpoint["optimizer"])
-    def Net(self):
-        return self.network
-    def Opt(self):
-        return self.optimizer

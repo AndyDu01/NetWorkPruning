@@ -22,21 +22,21 @@ class StudentNet(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(2, 2, 0),
 
-            nn.Conv2d(32, 64, 3),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(32, 50, 3),
+            nn.BatchNorm2d(50),
             nn.ReLU(),
-            nn.Conv2d(64, 64, 3),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(50, 50, 3),
+            nn.BatchNorm2d(50),
             nn.ReLU(),
             nn.MaxPool2d(2, 2, 0),
 
             nn.AdaptiveAvgPool2d((4, 4)),
         )
         self.fc = nn.Sequential(
-            nn.Linear(64 * 4 * 4, 64),
-            nn.BatchNorm1d(64),
+            nn.Linear(50 * 4 * 4, 50),
+            nn.BatchNorm1d(50),
             nn.ReLU(),
-            nn.Linear(64, 11),
+            nn.Linear(50, 11),
         )
 
     def forward(self, x):

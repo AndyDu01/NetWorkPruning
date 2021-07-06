@@ -103,7 +103,7 @@ for epoch in range(n_epochs):
     valid_loss = []
     valid_accs = []
     student_net.eval()
-    for batch in tqdm(valid_loader):
+    for batch in valid_loader:
         imgs, labels = batch
         with torch.no_grad():
             logits = student_net(imgs.to(device))

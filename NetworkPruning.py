@@ -34,7 +34,7 @@ batch_size = 64
 train_set = DatasetFolder(sourcePath + "food-11/training/labeled",
                           loader=lambda x: Image.open(x), extensions="jpg", transform=train_tfm)
 valid_set = DatasetFolder(
-    "food-11/validation", loader=lambda x: Image.open(x), extensions="jpg", transform=test_tfm)
+    sourcePath + "food-11/validation", loader=lambda x: Image.open(x), extensions="jpg", transform=test_tfm)
 unlabeled_set = DatasetFolder(sourcePath + "food-11/training/unlabeled",
                               loader=lambda x: Image.open(x), extensions="jpg", transform=train_tfm)
 test_set = DatasetFolder(
@@ -46,7 +46,6 @@ valid_loader = DataLoader(valid_set, batch_size=batch_size,
 test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
 
-
 student = Student()
 student_net = student.network
 summary(student_net, (3, 128, 128), device="cpu")
@@ -55,7 +54,7 @@ summary(student_net, (3, 128, 128), device="cpu")
 def loss_fn_kd(outputs, labels, teacher_outputs, alpha=0.5, T=2.33):
     hard_loss = F.cross_entropy(outputs, labels) * (1. - alpha)
     soft_loss = T * T * alpha * nn.KLDivLoss()(nn.Softmax(-1)(teacher_outputs/T),
-                                       nn.Softmax(-1)(outputs/T))
+                                               nn.Softmax(-1)(outputs/T))
     return hard_loss + soft_loss
 
 
@@ -118,7 +117,7 @@ for epoch in range(n_epochs):
     print(
         f"[ Valid | {epoch + 1:03d}/{n_epochs:03d} ] loss = {valid_loss:.5f}, acc = {valid_acc:.5f}")
 
-#=================Prediction===========================
+# =================Prediction===========================
 predictions = []
 student_net.eval()
 for batch in tqdm(test_loader):
@@ -126,7 +125,7 @@ for batch in tqdm(test_loader):
     with torch.no_grad():
         logits = student_net(imgs.to(device))
     predictions.extend(logits.argmax(dim=-1).cpu().numpy().tolist())
-#https://www.kaggle.com/c/ml2021spring-hw13/leaderboard
+# https://www.kaggle.com/c/ml2021spring-hw13/leaderboard
 with open("predict.csv", "w") as f:
     f.write("Id,Category\n")
     for i, pred in enumerate(predictions):

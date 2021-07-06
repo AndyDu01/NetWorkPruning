@@ -55,3 +55,7 @@ class Student():
         checkpoint = torch.load(PATH)
         self.network.load_state_dict(checkpoint["network"])
         self.optimizer.load_state_dict(checkpoint["optimizer"])
+    def Net(self):
+        return self.network
+    def Opt(self):
+        return self.optimizer

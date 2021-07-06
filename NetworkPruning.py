@@ -47,7 +47,7 @@ test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
 
 student = Student()
-student_net = student.network
+student_net = student.Net()
 summary(student_net, (3, 128, 128), device="cpu")
 
 
@@ -69,12 +69,12 @@ concat_dataset = ConcatDataset([train_set, unlabeled_set])
 train_loader = DataLoader(
     concat_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, drop_last=True)
 criterion = nn.CrossEntropyLoss()
-optimizer = student.optimizer
+optimizer = student.Opt()
 n_epochs = 80
 if '-l' in sys.argv:
     student.load(sourcePath)
-    student_net = student.network
-    optimizer = student.optimizer
+    student_net = student.Net()
+    optimizer = student.Opt()
 for epoch in range(n_epochs):
     student_net.train()
     train_loss = []

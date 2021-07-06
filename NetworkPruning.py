@@ -15,7 +15,7 @@ from SemiSupervise import get_pseudo_labels
 from StudentNetwork import *
 import sys
 sourcePath = "/tmp2/b08902011/"
-
+tqdm.monitor_interval = 0
 train_tfm = transforms.Compose([
     transforms.Resize((142, 142)),
     transforms.RandomHorizontalFlip(),

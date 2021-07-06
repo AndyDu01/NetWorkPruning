@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 
+
 class StudentNet(nn.Module):
     def __init__(self):
         super(StudentNet, self).__init__()
@@ -16,20 +17,26 @@ class StudentNet(nn.Module):
             nn.Conv2d(16, 32, 3),
             nn.BatchNorm2d(32),
             nn.ReLU(),
+            nn.Conv2d(32, 32, 3),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
             nn.MaxPool2d(2, 2, 0),
 
             nn.Conv2d(32, 64, 3),
             nn.BatchNorm2d(64),
             nn.ReLU(),
+            nn.Conv2d(64, 64, 3),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
             nn.MaxPool2d(2, 2, 0),
 
-            nn.Conv2d(64, 32, 3),
-            nn.BatchNorm2d(32),
-            nn.ReLU(),
             nn.AdaptiveAvgPool2d((4, 4)),
         )
         self.fc = nn.Sequential(
-            nn.Linear(32 * 16, 11),
+            nn.Linear(64 * 4 * 4, 64),
+            nn.BatchNorm1d(64),
+            nn.ReLU(),
+            nn.Linear(64, 11),
         )
 
     def forward(self, x):

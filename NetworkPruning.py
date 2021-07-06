@@ -11,7 +11,6 @@ from PIL import Image
 from torch.utils.data import ConcatDataset, DataLoader, Subset
 from torchvision.datasets import DatasetFolder
 from tqdm import tqdm
-tqdm.monitor_interval = 0
 from SemiSupervise import get_pseudo_labels
 from StudentNetwork import *
 import sys
@@ -31,7 +30,7 @@ test_tfm = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-batch_size = 512
+batch_size = 32
 train_set = DatasetFolder(sourcePath + "food-11/training/labeled",
                           loader=lambda x: Image.open(x), extensions="jpg", transform=train_tfm)
 valid_set = DatasetFolder(
@@ -41,9 +40,9 @@ unlabeled_set = DatasetFolder(sourcePath + "food-11/training/unlabeled",
 test_set = DatasetFolder(
     sourcePath + "food-11/testing", loader=lambda x: Image.open(x), extensions="jpg", transform=test_tfm)
 train_loader = DataLoader(train_set, batch_size=batch_size,
-                          shuffle=True, num_workers=2, pin_memory=True)
+                          shuffle=True, num_workers=32, pin_memory=True, persistent_workers=True)
 valid_loader = DataLoader(valid_set, batch_size=batch_size,
-                          shuffle=True, num_workers=2, pin_memory=True)
+                          shuffle=True, num_workers=32, pin_memory=True, persistent_workers=True)
 test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
 
 
@@ -65,13 +64,14 @@ teacher_net.eval()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 student_net = student_net.to(device)
 teacher_net = teacher_net.to(device)
-unlabeled_set = get_pseudo_labels(unlabeled_set, teacher_net,batch_size= batch_size)
+unlabeled_set = get_pseudo_labels(
+    unlabeled_set, teacher_net, batch_size=batch_size)
 concat_dataset = ConcatDataset([train_set, unlabeled_set])
 train_loader = DataLoader(
     concat_dataset, batch_size=batch_size, shuffle=True, pin_memory=True, drop_last=True)
 criterion = nn.CrossEntropyLoss()
 optimizer = student.optimizer
-n_epochs = 80
+n_epochs = 120
 if '-l' in sys.argv:
     student.load(sourcePath + "student.dict")
     student_net = student.network
@@ -103,7 +103,7 @@ for epoch in range(n_epochs):
     valid_loss = []
     valid_accs = []
     student_net.eval()
-    for batch in valid_loader:
+    for batch in tqdm(valid_loader):
         imgs, labels = batch
         with torch.no_grad():
             logits = student_net(imgs.to(device))
@@ -117,7 +117,7 @@ for epoch in range(n_epochs):
     valid_acc = sum(valid_accs) / len(valid_accs)
     print(
         f"[ Valid | {epoch + 1:03d}/{n_epochs:03d} ] loss = {valid_loss:.5f}, acc = {valid_acc:.5f}")
-
+    print()
 # =================Prediction===========================
 predictions = []
 student_net.eval()
